@@ -28,7 +28,7 @@ from os import _exit
 def rcver(sock, win, wint):
     while True:
         try:
-            data = sock.recv(2048).decode()
+            data = sock.recv(2048).decode('utf-8-sig')
         except ConnectionResetError:
             win.addstr(f'SYSTEM: Ha ocurrido un error y el programa ha dejado de funcionar. Reinicia la app, puedes cerrar escribiendo "ixil"')
             win.noutrefresh()
@@ -136,7 +136,7 @@ def design_1(stdscr,y,x,cx,user,chat):
             curses.endwin();_exit(0)
         Wb.move(1,0);Wb.clrtoeol()
         if not msg: continue
-        clt.sendall(('{"name": "%s", "msg": "%s"}' % (user,msg)).encode())
+        clt.sendall(('{"name": "%s", "msg": "%s"}' % (user,msg)).encode('utf-8-sig'))
         # Wr.addstr(f"{user}:",curses.color_pair(10))
         # Wr.addstr(f" {msg}\n")
         Wb.touchwin()
