@@ -5,25 +5,10 @@ from modules import ncRead
 from modules.ncRead import ampsread
 from modules.boxsel import vboxsel, hboxsel
 from curses.textpad import rectangle
+from modules.scaper import scaper
 from shlex import split
 from threading import Thread
-#from time import sleep
 from os import _exit
-
-#def server():
-#    srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-#    srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-#    srv.bind(("127.0.0.1", 4444))
-#    srv.listen()
-#    conn, addr = srv.accept()
-#    while True:
-#        data = conn.recv(2048)
-#        conn.sendall(data)
-
-#def msger(sock):
-#    while True:
-#        sleep(2)
-#        sock.sendall('{"name": "Anonymous", "msg": "Just a test."}'.encode())
 
 def rcver(sock, win, wint):
     while True:
@@ -38,8 +23,8 @@ def rcver(sock, win, wint):
             break
         if not data:
             break
-        msg = eval(data)
-        win.addstr(f'{msg["name"]}: {msg["msg"]}\n')
+        msg = json.loads(data)
+        win.addstr(f'<{msg["name"]}>: {msg["msg"]}\n')
         win.noutrefresh()
         wint.touchwin()
         wint.noutrefresh()
@@ -133,10 +118,10 @@ def design_1(stdscr,y,x,cx,user,chat):
     while True:
         msg = ampsread(Wb,1,0,(x-2)-24,200)
         if msg == "ixil":
-            curses.endwin();_exit(0)
+            curses.endwin();clt.close();_exit(0)
         Wb.move(1,0);Wb.clrtoeol()
         if not msg: continue
-        clt.sendall(('{"name": "%s", "msg": "%s"}' % (user,msg)).encode('utf-8-sig'))
+        clt.sendall(('{"name": "%s", "msg": "%s"}' % (user,scaper(msg,'"'))).encode('utf-8-sig'))
         # Wr.addstr(f"{user}:",curses.color_pair(10))
         # Wr.addstr(f" {msg}\n")
         Wb.touchwin()
