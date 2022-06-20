@@ -28,7 +28,7 @@ def ampsread(stdscr,y,x,vislim=30,chlim=30,mode=0):
 
     while True:
         ch = stdscr.get_wch(y,x+p)
-        if ch == 127: ch = KEY_BACKSPACE
+        if ord(ch) == 127: ch = KEY_BACKSPACE
         if ch == chr(4):
             return
         if ch == '\n':
