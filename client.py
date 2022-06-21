@@ -119,6 +119,7 @@ def design_1(stdscr,y,x,cx,user,chat):
     #####################
     clt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     clt.connect(("181.164.171.34", 5555))
+    clt.sendall("24eds124".encode())
     rc = Thread(target=rcver, args=(clt,Wr, Wb))
     #ms = Thread(target=msger, args=(clt,))
     rc.start()#;ms.start()
