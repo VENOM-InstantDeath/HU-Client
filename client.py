@@ -15,7 +15,7 @@ def rcver(sock, win, wint):
         try:
             data = sock.recv(2048).decode('utf-8-sig')
         except ConnectionResetError:
-            win.addstr(f'SYSTEM: Ha ocurrido un error y el programa ha dejado de funcionar. Reinicia la app, puedes cerrar escribiendo "ixil"')
+            win.addstr(f'<SYSTEM>: Ha ocurrido un error y el programa ha dejado de funcionar. Reinicia la app, puedes cerrar escribiendo "ixil"')
             win.noutrefresh()
             wint.touchwin()
             wint.noutrefresh()
@@ -23,7 +23,22 @@ def rcver(sock, win, wint):
             break
         if not data:
             break
-        msg = json.loads(data)
+        try:
+            msg = json.loads(data)
+        except Exception:
+            sock.close()
+            win.addstr('<SYSTEM>: Se ha producido un error al parsear un objeto JSON. Por favor reporta este error con los desarrolladores de HU.')
+            win.noutrefresh()
+            wint.touchwin()
+            wint.noutrefresh()
+            curses.doupdate()
+            win.addstr('<SYSTEM>: Presiona una tecla para continuar...')
+            win.noutrefresh()
+            wint.touchwin()
+            wint.noutrefresh()
+            curses.doupdate()
+            win.getch()
+            exit(0)
         win.addstr(f'<{msg["name"]}>: {msg["msg"]}\n')
         win.noutrefresh()
         wint.touchwin()
