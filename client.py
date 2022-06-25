@@ -283,11 +283,4 @@ rc = Thread(target=rcver, args=(clt,Wr, Wb))
 #ms = Thread(target=msger, args=(clt,))
 rc.start()#;ms.start()
 
-dbcon = mariadb.connect(
-        user="xp",
-        password="dev123",
-        host="localhost",
-        port=3306,
-        database="HU")
-dbcur = dbcon.cursor()
 curses.wrapper(main)
