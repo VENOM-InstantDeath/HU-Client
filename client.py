@@ -1,6 +1,7 @@
 import curses
 import socket
 import json
+import mariadb
 from modules import ncRead
 from modules.ncRead import ampsread
 from modules.boxsel import vboxsel, hboxsel
@@ -15,19 +16,26 @@ def rcver(sock, win, wint):
         try:
             data = sock.recv(2048).decode('utf-8-sig')
         except ConnectionResetError:
-            win.addstr(f'<SYSTEM>: Ha ocurrido un error y el programa ha dejado de funcionar. Reinicia la app, puedes cerrar escribiendo "ixil"')
+            win.addstr(f'<SYSTEM>: Ha ocurrido un error y el programa ha dejado de funcionar. Reinicia la app.')
             win.noutrefresh()
             wint.touchwin()
             wint.noutrefresh()
             curses.doupdate()
-            break
+            win.addstr('<SYSTEM>: Presiona una tecla para continuar...')
+            win.noutrefresh()
+            wint.touchwin()
+            wint.noutrefresh()
+            curses.doupdate()
+            win.getch()
+            exit(0)
         if not data:
             break
         try:
             msg = json.loads(data)
-        except Exception:
+        except Exception as e:
             sock.close()
             win.addstr('<SYSTEM>: Se ha producido un error al parsear un objeto JSON. Por favor reporta este error con los desarrolladores de HU.')
+            win.addstr(f'<SYSTEM>: Dato::{e}')
             win.noutrefresh()
             wint.touchwin()
             wint.noutrefresh()
@@ -66,9 +74,6 @@ def clrbox(stdscr,y1,x1,y2,xm):
             stdscr.addch(i,e,' ')
 
 def design_1(stdscr,y,x,cx,user,chat):
-    # Arrancar server
-    #sv = Thread(target=server)
-    #sv.start()
     ###########################
     # Dibujado de rectángulos #
     ###########################
@@ -114,16 +119,6 @@ def design_1(stdscr,y,x,cx,user,chat):
     Wb.noutrefresh()
     curses.doupdate()
 
-    #####################
-    # Inicio de threads #
-    #####################
-    clt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    clt.connect(("181.164.171.34", 5555))
-    clt.sendall("24eds124".encode())
-    rc = Thread(target=rcver, args=(clt,Wr, Wb))
-    #ms = Thread(target=msger, args=(clt,))
-    rc.start()#;ms.start()
-
     #########
     # Input #
     #########
@@ -165,13 +160,14 @@ def register(stdscr,creds,cx):
     if " " in creds["username"]:
         stdscr.addstr(6,(cx-(16//2))-13,"El nombre de usuario no puede contener espacios",curses.color_pair(10))
         return 1
-    dbcur.execute(f'select name from user;')
-    for i in dbcur.fetchall():
-        if i[0] == creds["username"]:
-         stdscr.addstr(6,(cx-(16//2))-13,"El nombre de usuario ya existe",curses.color_pair(10))
-         return 1
-    dbcur.execute(f'insert into user (name, passw) values ("{creds["username"]}", "{creds["password"]}")')
-    dbcon.commit()
+    creds["status"] = "0"
+    clt.send(json.dumps(creds).encode())
+    response = int(clt.recv(1024).decode())
+    if response == 1:
+        stdscr.addstr(6,(cx-(16//2))-13,"El nombre de usuario ya existe",curses.color_pair(10))
+        return 1
+    elif response:
+        return 1
     login_screen(stdscr,cx)
     return 0
 
@@ -277,4 +273,21 @@ def main(stdscr):
     stdscr.addstr(1,cx-(15//2),"Hacking-Utils.c (Dev version)", curses.color_pair(17))
     login_screen(stdscr,cx)
 
+#####################
+# Inicio de threads #
+#####################
+clt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+clt.connect(("181.164.171.34", 5555))
+clt.sendall("24eds124".encode())
+rc = Thread(target=rcver, args=(clt,Wr, Wb))
+#ms = Thread(target=msger, args=(clt,))
+rc.start()#;ms.start()
+
+dbcon = mariadb.connect(
+        user="xp",
+        password="dev123",
+        host="localhost",
+        port=3306,
+        database="HU")
+dbcur = dbcon.cursor()
 curses.wrapper(main)
