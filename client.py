@@ -137,7 +137,7 @@ def design_1(stdscr,y,x,cx,user,chat):
             curses.endwin();clt.close();_exit(0)
         Wb.move(1,0);Wb.clrtoeol()
         if not msg: continue
-        clt.sendall(('{"name": "%s", "msg": "%s"}' % (user,scaper(msg,'"'))).encode('utf-8'))
+        clt.sendall(('{"msg": "%s"}' % (user,scaper(msg,'"'))).encode('utf-8'))
         # Wr.addstr(f"{user}:",curses.color_pair(10))
         # Wr.addstr(f" {msg}\n")
         Wb.touchwin()
