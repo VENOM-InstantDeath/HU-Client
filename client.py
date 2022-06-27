@@ -184,7 +184,7 @@ def login(stdscr,creds,cx):
         return 1
     clt.sendall(('{"operation": "1", "username":"%s", "password":"%s"}' % (creds['username'], creds['password'])).encode('utf-8'))
     rsp = clt.recv(1024).decode('utf-8')
-    if not rsp:
+    if rsp == "0":
         y, x = stdscr.getmaxyx()
         stdscr.move(3,0);stdscr.clrtobot()
         design_1(stdscr,y,x,cx, 'm1')
