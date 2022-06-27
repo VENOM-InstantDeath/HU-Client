@@ -1,10 +1,9 @@
 import curses
 import socket
 import json
-import mariadb
 from modules import ncRead
 from modules.ncRead import ampsread
-from modules.boxsel import vboxsel, hboxsel
+from modules.boxsel import vboxsel
 from curses.textpad import rectangle
 from modules.scaper import scaper
 from shlex import split
@@ -205,10 +204,10 @@ def register_screen(stdscr,cx):
     curses.curs_set(0)
     creds = {"username":"","password":""}
     posit = (
-             (8, ((cx-(16//2))-13)+19+15, 8, 0, 0),
-             (9, ((cx-(16//2))-13)+11+20, 9, 0, 0),
-             ((11, (cx-(16//2))-7, 13, (cx-(16//2))+8,1), (11,(cx-(16//2))+10,13,(cx-(16//2))+22,1)),
-             (16,(cx-(16//2))+1,18,(cx-(16//2))+12)
+             ((2, 8, ((cx-(16//2))-13)+19, 15, 0)),
+             ((2, 9, ((cx-(16//2))-13)+11, 20, 0)),
+             ((0, 11, (cx-(16//2))-7, 13, (cx-(16//2))+8,1), (0, 11,(cx-(16//2))+10,13,(cx-(16//2))+22,1)),
+             ((0, 16,(cx-(16//2))+1,18,(cx-(16//2))+12))
             )
     func = (
              lambda: readondict(stdscr,8,((cx-(16//2))-13)+19,15,24,0,creds,"username"),
@@ -240,10 +239,10 @@ def login_screen(stdscr,cx):
     curses.curs_set(0)
     creds = {"username":"","password":""}
     posit = (
-             (8, ((cx-(16//2))-13)+19+15, 8, 0, 0),
-             (9, ((cx-(16//2))-13)+11+20, 9, 0, 0),
-             ((11, (cx-(16//2))-7, 13, (cx-(16//2))+5,1), (11,(cx-(16//2))+7,13,(cx-(16//2))+22,1)),
-             (16,(cx-(16//2))+1,18,(cx-(16//2))+12)
+             ((2, 8, ((cx-(16//2))-13)+19, 15, 0)),
+             ((2, 9, ((cx-(16//2))-13)+11, 20, 0)),
+             ((0, 11, (cx-(16//2))-7, 13, (cx-(16//2))+5,1), (0, 11,(cx-(16//2))+7,13,(cx-(16//2))+22,1)),
+             ((0, 16,(cx-(16//2))+1,18,(cx-(16//2))+12))
             )
     func = (
              lambda: readondict(stdscr,8,((cx-(16//2))-13)+19,15,24,0,creds,"username"),
