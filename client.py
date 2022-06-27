@@ -216,13 +216,13 @@ def register_screen(stdscr,cx):
              ((0, 16,(cx-(16//2))+1,18,(cx-(16//2))+12))
             )
     func = (
-             lambda: readondict(stdscr,8,((cx-(16//2))-13)+19,15,24,0,creds,"username"),
-             lambda: readondict(stdscr,9,((cx-(16//2))-12)+11,20,24,1,creds,"password"),
+             (lambda: readondict(stdscr,8,((cx-(16//2))-13)+19,15,24,0,creds,"username")),
+             (lambda: readondict(stdscr,9,((cx-(16//2))-12)+11,20,24,1,creds,"password")),
              (
                  lambda: login_screen(stdscr,cx),
                  lambda: register(stdscr,creds,cx)
              ),
-             exit
+             (exit)
             )
     curses.noecho()
     vboxsel(stdscr,posit,func)
@@ -251,13 +251,13 @@ def login_screen(stdscr,cx):
              ((0, 16,(cx-(16//2))+1,18,(cx-(16//2))+12))
             )
     func = (
-             lambda: readondict(stdscr,8,((cx-(16//2))-13)+19,15,24,0,creds,"username"),
-             lambda: readondict(stdscr,9,((cx-(16//2))-12)+11,20,24,1,creds,"password"),
+             (lambda: readondict(stdscr,8,((cx-(16//2))-13)+19,15,24,0,creds,"username")),
+             (lambda: readondict(stdscr,9,((cx-(16//2))-12)+11,20,24,1,creds,"password")),
              (
                  lambda: register_screen(stdscr,cx),
                  lambda: login(stdscr,creds,cx)
              ),
-             exit
+             (exit)
             )
     curses.noecho()
     vboxsel(stdscr,posit,func)
