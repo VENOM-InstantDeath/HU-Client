@@ -118,6 +118,12 @@ def design_1(stdscr,y,x,cx,user,chat):
     Wb.noutrefresh()
     curses.doupdate()
 
+    #####################
+    # Inicio de threads #
+    #####################
+    rc = Thread(target=rcver, args=(clt,Wr, Wb))
+    rc.start()
+
     #########
     # Input #
     #########
@@ -272,14 +278,9 @@ def main(stdscr):
     stdscr.addstr(1,cx-(15//2),"Hacking-Utils.c (Dev version)", curses.color_pair(17))
     login_screen(stdscr,cx)
 
-#####################
-# Inicio de threads #
-#####################
+
 clt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 clt.connect(("181.164.171.34", 5555))
 clt.sendall("24eds124".encode())
-rc = Thread(target=rcver, args=(clt,Wr, Wb))
-#ms = Thread(target=msger, args=(clt,))
-rc.start()#;ms.start()
 
 curses.wrapper(main)
