@@ -182,7 +182,7 @@ def login(stdscr,creds,cx):
     if (not creds["username"]) or (not creds["password"]):
         stdscr.addstr(6,(cx-(16//2))-13,"Todos los campos son obligatorios!",curses.color_pair(10))
         return 1
-    clt.sendall('{"operation": "0", username="%s", password="%s"}' % (creds['username'], creds['password']))
+    clt.sendall(('{"operation": "0", username="%s", password="%s"}' % (creds['username'], creds['password'])).encode('utf-8'))
     rsp = clt.recv(1024).decode('utf-8')
     if not rsp:
         y, x = stdscr.getmaxyx()
