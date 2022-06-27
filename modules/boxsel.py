@@ -66,16 +66,15 @@ def vboxsel(stdscr, posit, funct):
             if p:
                 p -= 1
         if k == 10:
-            if isinstance(funct[p], tuple):
-                r = funct[p][sp]()
-                if posit[p][sp][4]:
+            r = funct[p][sp]()
+            if posit[p][sp][0] == 0:
+                if posit[p][sp][5]:
                     if r: continue
                     break
-            else:
-                r = funct[p]()
-                if posit[p][4]:
-                    if r: continue
-                    break
+                else:
+                    if posit[p][sp][4]:
+                        if r: continue
+                        break
         for a in range(len(posit)):
             for b in range(len(posit[a])):
                 if posit[a][b][0] == 0:
