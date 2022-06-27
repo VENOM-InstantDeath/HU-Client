@@ -164,16 +164,14 @@ def register(stdscr,creds,cx):
         return 1
     if " " in creds["username"]:
         stdscr.addstr(6,(cx-(16//2))-13,"El nombre de usuario no puede contener espacios",curses.color_pair(10))
-        return 1
-    creds["status"] = "0"
-    clt.send(json.dumps(creds).encode())
-    response = int(clt.recv(1024).decode())
-    if response == 1:
+        return 1 
+    clt.sendall(('{"operation": "0", "username":"%s", "password":"%s"}' % (creds['username'], creds['password'])).encode('utf-8'))
+    rsp = clt.recv(1024).decode('utf-8')
+    if rsp == '1':
         stdscr.addstr(6,(cx-(16//2))-13,"El nombre de usuario ya existe",curses.color_pair(10))
         return 1
-    elif response:
-        return 1
-    login_screen(stdscr,cx)
+    else:
+        login_screen(stdscr,cx)
     return 0
 
 
