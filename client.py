@@ -72,7 +72,7 @@ def clrbox(stdscr,y1,x1,y2,xm):
         for e in range(x1,xm+1):
             stdscr.addch(i,e,' ')
 
-def design_1(stdscr,y,x,cx,user,chat):
+def design_1(stdscr,y,x,cx,chat):
     ###########################
     # Dibujado de rectángulos #
     ###########################
@@ -182,17 +182,14 @@ def login(stdscr,creds,cx):
     if (not creds["username"]) or (not creds["password"]):
         stdscr.addstr(6,(cx-(16//2))-13,"Todos los campos son obligatorios!",curses.color_pair(10))
         return 1
-    """for i in names:
-        if i[0] == creds["username"] and i[1] == creds["password"]:
-            y, x = stdscr.getmaxyx()
-            stdscr.move(3,0);stdscr.clrtobot()
-            design_1(stdscr,y,x,cx,creds["username"], 'm1')
-            return 0"""
-    if (creds["password"] == "demo"):
+    clt.sendall('{"operation": "0", username="%s", password="%s"}' % (creds['username'], creds['password']))
+    rsp = clt.recv(1024).decode('utf-8')
+    if not rsp:
         y, x = stdscr.getmaxyx()
         stdscr.move(3,0);stdscr.clrtobot()
-        design_1(stdscr,y,x,cx,creds["username"], 'm1')
-    stdscr.addstr(6,(cx-(16//2))-13,"Usuario o contraseña incorrectos",curses.color_pair(10))
+        design_1(stdscr,y,x,cx, 'm1')
+    else:
+        stdscr.addstr(6,(cx-(16//2))-13,"Usuario o contraseña incorrectos",curses.color_pair(10))
     return 1
 
 def register_screen(stdscr,cx):
