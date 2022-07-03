@@ -26,6 +26,7 @@ def rcver(sock, win, wint):
             wint.noutrefresh()
             curses.doupdate()
             win.getch()
+            sock.close()
             exit(0)
         if not data:
             break
@@ -45,8 +46,21 @@ def rcver(sock, win, wint):
             wint.noutrefresh()
             curses.doupdate()
             win.getch()
+            sock.close()
             exit(0)
-        win.addstr(f'<{msg["name"]}>: {msg["msg"]}\n')
+        try:
+            win.addstr(f'<{msg["name"]}>: {msg["msg"]}\n')
+        except KeyError:
+            win.addstr('<SYSTEM>: KeyError on rcver thread.\n')
+            win.addstr(f'<SYSTEM>: {msg}\n')
+            win.addstr('<SYSTEM> Presiona una tecla para continuar...')
+            win.noutrefresh()
+            wint.touchwin()
+            wint.noutrefresh()
+            curses.doupdate()
+            win.getch()
+            sock.close()
+            exit(0)
         win.noutrefresh()
         wint.touchwin()
         wint.noutrefresh()
@@ -137,6 +151,7 @@ def design_1(stdscr,y,x,cx,chat):
             curses.endwin();clt.close();_exit(0)
         Wb.move(1,0);Wb.clrtoeol()
         if not msg: continue
+        #TODO! BROKEN PIPE ERROR HANDLE ! TODO#
         clt.sendall(('{"msg": "%s"}' % scaper(msg,'"')).encode('utf-8'))
         # Wr.addstr(f"{user}:",curses.color_pair(10))
         # Wr.addstr(f" {msg}\n")
