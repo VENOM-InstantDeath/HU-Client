@@ -102,8 +102,8 @@ def design_1(stdscr,y,x,cx,chat):
     #######################################
     # Escritura de los paneles izquierdos #
     #######################################
-    chats = ["Chat oficial","EssEnemiGz","Arch","Staff","Logs","Bots","Python","C/C++","Slackware","Repositorios"]
-    opts = ["Chatrooms", "Publicaciones", "Ajustes", "Cerrar Sesión"]
+    chats = ["Chat oficial"]
+    opts = ["Chatrooms", "Cerrar Sesión"]
     for i in range(len(chats)):
         Wul.addstr(i,2,chats[i])
     Wul.addstr(0, 0, '*')
@@ -212,7 +212,7 @@ def register_screen(stdscr,cx):
             )
     func = (
              (lambda: readondict(stdscr,8,((cx-(16//2))-13)+19,15,24,0,creds,"username"),),
-             (lambda: readondict(stdscr,9,((cx-(16//2))-12)+11,20,24,1,creds,"password"),),
+             (lambda: readondict(stdscr,9,((cx-(16//2))-12)+11,20,24,0,creds,"password"),),
              (
                  lambda: login_screen(stdscr,cx),
                  lambda: register(stdscr,creds,cx)
