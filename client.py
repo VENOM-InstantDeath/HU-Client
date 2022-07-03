@@ -27,6 +27,7 @@ def rcver(sock, win, wint):
             curses.doupdate()
             curses.napms(2000)
             sock.close()
+            curses.endwin()
             _exit(0)
         if not data:
             break
@@ -46,7 +47,7 @@ def rcver(sock, win, wint):
             wint.noutrefresh()
             curses.doupdate()
             curses.napms(2000)
-            sock.close()
+            curses.endwin()
             _exit(0)
         try:
             win.addstr(f'<{msg["name"]}>: {msg["msg"]}\n')
@@ -60,6 +61,7 @@ def rcver(sock, win, wint):
             curses.doupdate()
             curses.napms(2000)
             sock.close()
+            curses.endwin()
             _exit(0)
         win.noutrefresh()
         wint.touchwin()
