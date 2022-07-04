@@ -1,6 +1,7 @@
 import curses
 import socket
 import json
+from requests import get
 from modules import ncRead
 from modules.ncRead import ampsread
 from modules.boxsel import vboxsel
@@ -9,6 +10,7 @@ from modules.scaper import scaper
 from shlex import split
 from threading import Thread
 from os import _exit
+VERSION = '0.0.0'
 
 def rcver(sock, win, wint):
     while True:
@@ -155,17 +157,11 @@ def design_1(stdscr,y,x,cx,chat):
         if not msg: continue
         #TODO! BROKEN PIPE ERROR HANDLE ! TODO#
         clt.sendall(('{"msg": "%s"}' % scaper(msg,'"')).encode('utf-8'))
-        # Wr.addstr(f"{user}:",curses.color_pair(10))
-        # Wr.addstr(f" {msg}\n")
         Wb.touchwin()
         stdscr.noutrefresh()
         Wr.noutrefresh()
         Wb.noutrefresh()
         curses.doupdate()
-
-    # TEMPORAL
-    stdscr.getch();curses.endwin();exit(0);
-    # !-!    
 
 def readondict(stdscr, y, x, vislim, chlim, mode,L, n):
     curses.curs_set(1)
@@ -288,11 +284,38 @@ def main(stdscr):
     cx = x//2
     fill_rectangle(stdscr,0,0,2,x-1)
     stdscr.addstr(1,cx-(15//2),"Hacking-Utils.c (Dev version)", curses.color_pair(17))
+    srv_ver = get("https://raw.githubusercontent.com/VENOM-InstantDeath/HU-Client/main/version")
+    if srv_ver.content.decode().strip() != VERSION:
+        win = curses.newwin(4,50, (y//2)-4, cx-25)
+        win.addstr(0,0,"El cliente está desactualizado, actualízalo para continuar.")
+        win.addstr(3,25-(len("[ok]")//2),"[OK]",curses.color_pair(1))
+        stdscr.refresh()
+        win.refresh()
+        while True:
+            k = win.getch()
+            if k == 10:
+                curses.endwin()
+                clt.close()
+                exit(0)
+    if IN_DEVELOPMENT:
+        win = curses.newwin(4,50, (y//2)-4, cx-25)
+        win.addstr(0,0,"El server se encuentra en mantenimiento, por lo que puede estar inestable.")
+        win.addstr(3,25-(len("[ok]")//2),"[OK]",curses.color_pair(1))
+        stdscr.refresh()
+        win.refresh()
+        while True:
+            k = win.getch()
+            if k == 10:
+                del win
+                stdscr.touchwin()
+                stdscr.refresh()
+                break
     login_screen(stdscr,cx)
 
 
 clt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 clt.connect(("181.164.171.34", 5555))
 clt.sendall("24eds124".encode())
+IN_DEVELOPMENT = int(clt.recv(20).decode())
 
 curses.wrapper(main)
