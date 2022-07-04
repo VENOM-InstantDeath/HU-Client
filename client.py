@@ -11,7 +11,7 @@ from modules.scaper import scaper
 from shlex import split
 from threading import Thread
 from os import _exit
-VERSION = '0.1.0'
+VERSION = '0.1.1'
 
 def rcver(sock, win, wint):
     while True:
@@ -201,6 +201,7 @@ def readondict(stdscr, y, x, vislim, chlim, mode,L, n):
     L[n] = ncRead.ampsread(stdscr,y,x,vislim,chlim,mode)
     curses.noecho()
     curses.curs_set(0)
+    return 1
 
 def register(stdscr,creds,cx):
     stdscr.move(6,(cx-(16//2))-13);stdscr.clrtoeol()
