@@ -4,13 +4,14 @@ import json
 from requests import get
 from modules import ncRead
 from modules.ncRead import ampsread
-from modules.boxsel import vboxsel
+from modules.boxsel import boxsel
+from modules.menu import menu
 from curses.textpad import rectangle
 from modules.scaper import scaper
 from shlex import split
 from threading import Thread
 from os import _exit
-VERSION = '0.0.0'
+VERSION = '0.1.0'
 
 def rcver(sock, win, wint):
     while True:
@@ -90,6 +91,32 @@ def clrbox(stdscr,y1,x1,y2,xm):
         for e in range(x1,xm+1):
             stdscr.addch(i,e,' ')
 
+def readbox(stdscr,Wb,Wr,x):
+    curses.curs_set(1)
+    curses.echo()
+    while True:
+        msg = ampsread(Wb,1,0,(x-2)-24,200)
+        if msg == "ixil":
+            curses.endwin();clt.close();_exit(0)
+        Wb.move(1,0);Wb.clrtoeol()
+        if msg == None: return 0
+        if not msg: continue
+        #TODO! BROKEN PIPE ERROR HANDLE ! TODO#
+        clt.sendall(('{"msg": "%s"}' % scaper(msg,'"')).encode('utf-8'))
+        Wb.touchwin()
+        stdscr.noutrefresh()
+        Wr.noutrefresh()
+        Wb.noutrefresh()
+        curses.doupdate()
+
+#!temporal
+def ixil():
+    curses.endwin()
+    clt.close()
+    _exit(0)
+def _pass(): return 0
+#
+
 def design_1(stdscr,y,x,cx,chat):
     ###########################
     # Dibujado de rectángulos #
@@ -145,23 +172,28 @@ def design_1(stdscr,y,x,cx,chat):
     #########
     # Input #
     #########
-    curses.curs_set(1)
     Wb.keypad(1)
+    Wul.keypad(1)
+    Wdl.keypad(1)
     Wr.scrollok(1)
-    curses.echo()
+    pos = (
+            ((3,3,10,1, 0),(3,3,(21+(x-2))//2,1, 0)),
+            ((3,y-6,10,1, 0),(3,y-3,(22+(x-2))//2,1, 0))
+        )
+    wdl_dict = {
+        "Chatrooms": _pass,
+        "Cerrar Sesión": ixil
+    }
+    func = (
+            (_pass,_pass),
+            (lambda: menu(Wdl,0,2,wdl_dict), lambda: readbox(stdscr, Wb, Wr,x))
+        )
+    curses.curs_set(0)
+    curses.noecho()
     while True:
-        msg = ampsread(Wb,1,0,(x-2)-24,200)
-        if msg == "ixil":
-            curses.endwin();clt.close();_exit(0)
-        Wb.move(1,0);Wb.clrtoeol()
-        if not msg: continue
-        #TODO! BROKEN PIPE ERROR HANDLE ! TODO#
-        clt.sendall(('{"msg": "%s"}' % scaper(msg,'"')).encode('utf-8'))
-        Wb.touchwin()
-        stdscr.noutrefresh()
-        Wr.noutrefresh()
-        Wb.noutrefresh()
-        curses.doupdate()
+        boxsel(stdscr,pos,func)
+        curses.curs_set(0)
+        curses.noecho()
 
 def readondict(stdscr, y, x, vislim, chlim, mode,L, n):
     curses.curs_set(1)
@@ -218,10 +250,10 @@ def register_screen(stdscr,cx):
     curses.curs_set(0)
     creds = {"username":"","password":""}
     posit = (
-             ((2, 8, ((cx-(16//2))-13)+19, 15, 0),),
-             ((2, 9, ((cx-(16//2))-13)+11, 20, 0),),
-             ((0, 11, (cx-(16//2))-7, 13, (cx-(16//2))+8,1), (0, 11,(cx-(16//2))+10,13,(cx-(16//2))+22,1)),
-             ((0, 16,(cx-(16//2))+1,18,(cx-(16//2))+12),)
+             ((2, 8, ((cx-(16//2))-13)+19, 15, 1),),
+             ((2, 9, ((cx-(16//2))-13)+11, 20, 1),),
+             ((0, 11, (cx-(16//2))-7, 13, (cx-(16//2))+8,0), (0, 11,(cx-(16//2))+10,13,(cx-(16//2))+22,0)),
+             ((0, 16,(cx-(16//2))+1,18,(cx-(16//2))+12,0),)
             )
     func = (
              (lambda: readondict(stdscr,8,((cx-(16//2))-13)+19,15,24,0,creds,"username"),),
@@ -233,7 +265,7 @@ def register_screen(stdscr,cx):
              (exit,)
             )
     curses.noecho()
-    vboxsel(stdscr,posit,func)
+    boxsel(stdscr,posit,func)
     curses.echo()
     curses.curs_set(0)
 
@@ -253,10 +285,10 @@ def login_screen(stdscr,cx):
     curses.curs_set(0)
     creds = {"username":"","password":""}
     posit = (
-             ((2, 8, ((cx-(16//2))-13)+19, 15, 0),),
-             ((2, 9, ((cx-(16//2))-13)+11, 20, 0),),
-             ((0, 11, (cx-(16//2))-7, 13, (cx-(16//2))+5,1), (0, 11,(cx-(16//2))+7,13,(cx-(16//2))+22,1)),
-             ((0, 16,(cx-(16//2))+1,18,(cx-(16//2))+12),)
+             ((2, 8, ((cx-(16//2))-13)+19, 15, 1),),
+             ((2, 9, ((cx-(16//2))-13)+11, 20, 1),),
+             ((0, 11, (cx-(16//2))-7, 13, (cx-(16//2))+5,0), (0, 11,(cx-(16//2))+7,13,(cx-(16//2))+22,0)),
+             ((0, 16,(cx-(16//2))+1,18,(cx-(16//2))+12,0),)
             )
     func = (
              (lambda: readondict(stdscr,8,((cx-(16//2))-13)+19,15,24,0,creds,"username"),),
@@ -268,7 +300,7 @@ def login_screen(stdscr,cx):
              (exit,)
             )
     curses.noecho()
-    vboxsel(stdscr,posit,func)
+    boxsel(stdscr,posit,func)
     curses.echo()
     curses.curs_set(0)
 

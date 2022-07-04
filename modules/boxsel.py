@@ -16,7 +16,9 @@ from curses.textpad import rectangle
 )
 '''
 
-def vboxsel(stdscr, posit, funct):
+def boxsel(stdscr, posit, funct):
+    curses.curs_set(0)
+    curses.noecho()
     curses.start_color()
     curses.init_pair(1, 0, curses.COLOR_GREEN)
     curses.init_pair(2, curses.COLOR_GREEN, -1)
@@ -50,6 +52,8 @@ def vboxsel(stdscr, posit, funct):
             stdscr.attroff(curses.color_pair(1))
 
     while True:
+        curses.curs_set(0)
+        curses.noecho()
         k = stdscr.getch()
         if k == curses.KEY_LEFT:
             if sp:
@@ -71,10 +75,12 @@ def vboxsel(stdscr, posit, funct):
                 if posit[p][sp][5]:
                     if r: continue
                     break
-                else:
-                    if posit[p][sp][4]:
-                        if r: continue
-                        break
+                else: break
+            else:
+                if posit[p][sp][4]:
+                    if r: continue
+                    break
+                else: break
         for a in range(len(posit)):
             for b in range(len(posit[a])):
                 if posit[a][b][0] == 0:
@@ -125,6 +131,6 @@ if __name__=='__main__':
 #                ((0, 3,0,y-6,20),(0, 3,21,y-6,x-2)),
 #                ((0, y-6,0,y-1,20),(1,y-5,22, 50)),
 #            )
-        vboxsel(stdscr,pos,fn)
+        boxsel(stdscr,pos,fn)
 
     curses.wrapper(main)

@@ -96,6 +96,7 @@ if __name__=="__main__":
     def main(stdscr):
         curses.use_default_colors()
         curses.init_pair(15,0,15)
+        win=curses.newwin(10,50, 5, 0)
         d = {
                 "print": lambda: putstr(stdscr, "Hello world"),
                 "opinion": lambda: putstr(stdscr, "Alto menú wacho"),
@@ -103,5 +104,5 @@ if __name__=="__main__":
                 "exit": exit
             }
         while True:
-            scroll(stdscr, 10, 20, d, 3)
+            menu(win, 3, 0, d)
     curses.wrapper(main)
