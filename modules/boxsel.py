@@ -69,6 +69,8 @@ def boxsel(stdscr, posit, funct):
         if k == curses.KEY_UP:
             if p:
                 p -= 1
+                if sp > len(posit[p])-1:
+                    sp = len(posit[p])-1
         if k == 10:
             r = funct[p][sp]()
             if posit[p][sp][0] == 0:
