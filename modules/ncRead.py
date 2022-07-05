@@ -30,6 +30,7 @@ def ampsread(stdscr,y,x,vislim=30,chlim=30,mode=0):
         ch = stdscr.get_wch(y,x+p)
         if isinstance(ch, str):
             if ord(ch) == 127: ch = KEY_BACKSPACE
+            if ord(ch) == 8: ch = KEY_BACKSPACE
         if ch == chr(4):
             pass
         if ch == chr(27):
