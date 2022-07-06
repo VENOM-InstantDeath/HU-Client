@@ -11,7 +11,7 @@ from modules.scaper import scaper
 from shlex import split
 from threading import Thread
 from os import _exit
-VERSION = '0.1.1'
+VERSION = '0.1.2'
 
 def rcver(sock, win, wint):
     while True:
@@ -102,7 +102,7 @@ def readbox(stdscr,Wb,Wr,x):
         if msg == None: return 0
         if not msg: continue
         #TODO! BROKEN PIPE ERROR HANDLE ! TODO#
-        clt.sendall(('{"msg": "%s"}' % scaper(msg,'"')).encode('utf-8'))
+        clt.sendall(('{"operation": "2", "msg": "%s"}' % scaper(msg,'"')).encode('utf-8'))
         Wb.touchwin()
         stdscr.noutrefresh()
         Wr.noutrefresh()
@@ -316,7 +316,7 @@ def main(stdscr):
     y,x = stdscr.getmaxyx()
     cx = x//2
     fill_rectangle(stdscr,0,0,2,x-1)
-    stdscr.addstr(1,cx-(15//2),"Hacking-Utils.c (Dev version)", curses.color_pair(17))
+    stdscr.addstr(1,cx-(15//2),"Hacking-Utils.c (Demo version)", curses.color_pair(17))
     srv_ver = get("https://raw.githubusercontent.com/VENOM-InstantDeath/HU-Client/main/version")
     if srv_ver.content.decode().strip() != VERSION:
         win = curses.newwin(4,50, (y//2)-4, cx-25)
