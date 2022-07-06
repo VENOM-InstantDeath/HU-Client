@@ -11,7 +11,7 @@ from modules.scaper import scaper
 from shlex import split
 from threading import Thread
 from os import _exit
-VERSION = '0.1.2'
+VERSION = '0.1.3'
 
 def rcver(sock, win, wint):
     while True:
