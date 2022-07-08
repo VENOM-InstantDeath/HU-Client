@@ -19,6 +19,7 @@ def clrbox(stdscr, y, x, minlim, vislim):
 # Amplified sread()
 def ampsread(stdscr,y,x,vislim=30,chlim=30,mode=0):
     curses.cbreak()
+    curses.noecho()
 
     string = []
     p = 0
