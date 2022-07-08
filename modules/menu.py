@@ -80,9 +80,13 @@ def menu(stdscr, y: int, x: int, d: dict) -> None:
                 stdscr.addstr(y+p, x, it[p], curses.color_pair(15))
         if k == 27:
             stdscr.addstr(y+p, x, it[p])
+            stdscr.noutrefresh()
+            curses.doupdate()
             return
         if k == 10:
             stdscr.addstr(y+p, x, it[p])
+            stdscr.noutrefresh()
+            curses.doupdate()
             res = d[it[p]]()
             if res:
                 return res
