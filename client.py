@@ -147,10 +147,11 @@ def design_1(stdscr,y,x,cx,chat):
     #######################################
     # Escritura de los paneles izquierdos #
     #######################################
-    chats = ["Chat oficial"]
+    clt.sendall('{"operation": "3", "get": "chatls"}'.encode('utf-8'))
+    chats = clt.recv(2048)
     opts = ["Chatrooms", "Cerrar Sesión"]
     for i in range(len(chats)):
-        Wul.addstr(i,2,chats[i])
+        Wul.addstr(i,2,chats[i][3])
     Wul.addstr(0, 0, '*')
     for i in range(len(opts)):
         Wdl.addstr(i,2,opts[i])
