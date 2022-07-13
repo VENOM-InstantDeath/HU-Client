@@ -11,7 +11,7 @@ from modules.scaper import scaper
 from shlex import split
 from threading import Thread
 from os import _exit
-VERSION = '1.0.2'
+VERSION = '1.0.3'
 
 def rcver(sock, win, wint, A_CHAT):
     while True:
@@ -36,7 +36,6 @@ def rcver(sock, win, wint, A_CHAT):
             break
         try:
             msg = json.loads(data)
-            F = open("DEBUG","w+");F.write(str(type(msg["chat"])));F.write(str(msg["chat"]));F.write(str(type(A_CHAT[0])));F.close()
             if msg["chat"] != A_CHAT[0]: continue
         except Exception as e:
             sock.close()
@@ -55,7 +54,7 @@ def rcver(sock, win, wint, A_CHAT):
             curses.endwin()
             _exit(0)
         try:
-            win.addstr(f'<{msg["name"]}>: {msg["msg"]}\n')
+            win.addstr(f'<{msg["name"].encode("unicode_escape").decode("utf-8")}>: {msg["msg"].encode("unicode_escape").decode("utf-8")}\n')
         except KeyError:
             win.addstr('<SYSTEM>: KeyError on rcver thread.\n')
             win.addstr(f'<SYSTEM>: {msg}\n')
@@ -268,6 +267,9 @@ def register(stdscr,creds,cx):
     if (not creds["username"]) or (not creds["password"]):
         stdscr.addstr(6,(cx-(16//2))-13,"Todos los campos son obligatorios!",curses.color_pair(10))
         return 1
+    if ("\n" in creds["username"] or "\t" in creds["username"]):
+        stdscr.addstr(6,(cx-(16//2))-13,"",curses.color_pair(10))
+        return 1
     if " " in creds["username"]:
         stdscr.addstr(6,(cx-(16//2))-13,"El nombre de usuario no puede contener espacios",curses.color_pair(10))
         return 1 
@@ -286,7 +288,7 @@ def login(stdscr,creds,cx):
     if (not creds["username"]) or (not creds["password"]):
         stdscr.addstr(6,(cx-(16//2))-13,"Todos los campos son obligatorios!",curses.color_pair(10))
         return 1
-    clt.sendall(('{"operation": "1", "username":"%s", "password":"%s"}' % (creds['username'], creds['password'])).encode('utf-8'))
+    clt.sendall(('{"operation": "1", "username":"%s", "password":"%s"}' % (scaper(creds['username'],'"'), scaper(creds['password'], '"'))).encode('utf-8'))
     rsp = clt.recv(1024).decode('utf-8')
     if rsp == "0":
         y, x = stdscr.getmaxyx()
