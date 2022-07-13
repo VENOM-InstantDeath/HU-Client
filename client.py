@@ -11,7 +11,7 @@ from modules.scaper import scaper
 from shlex import split
 from threading import Thread
 from os import _exit
-VERSION = '1.0.0'
+VERSION = '1.0.2'
 
 def rcver(sock, win, wint, A_CHAT):
     while True:
@@ -148,7 +148,7 @@ def _pass(): return 0
 
 def design_1(stdscr,y,x,cx):
     A_CHAT = [1]
-
+    stdscr.move(3,0);stdscr.clrtobot()
     ######################################
     # Obtención de los datos del usuario #
     ######################################
@@ -216,11 +216,11 @@ def design_1(stdscr,y,x,cx):
         else: break
     msgs = json.loads(data.decode('utf-8'))
     msgs.reverse()
+    Wr.scrollok(1)
     for i in msgs:
         Wr.addstr(f'<{i[6]}>: {i[3]}\n')
     Wr.noutrefresh()
     curses.doupdate()
-
     #####################
     # Inicio de threads #
     #####################
@@ -233,7 +233,6 @@ def design_1(stdscr,y,x,cx):
     Wb.keypad(1)
     Wul.keypad(1)
     Wdl.keypad(1)
-    Wr.scrollok(1)
     pos = (
             ((3,3,10,1, 0),(3,3,(21+(x-2))//2,1, 0)),
             ((3,y-6,10,1, 0),(3,y-3,(22+(x-2))//2,1, 0))
@@ -291,7 +290,6 @@ def login(stdscr,creds,cx):
     rsp = clt.recv(1024).decode('utf-8')
     if rsp == "0":
         y, x = stdscr.getmaxyx()
-        stdscr.move(3,0);stdscr.clrtobot()
         design_1(stdscr,y,x,cx)
     else:
         stdscr.addstr(6,(cx-(16//2))-13,"Usuario o contraseña incorrectos",curses.color_pair(10))
