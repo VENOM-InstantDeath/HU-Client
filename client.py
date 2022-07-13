@@ -11,9 +11,9 @@ from modules.scaper import scaper
 from shlex import split
 from threading import Thread
 from os import _exit
-VERSION = '0.1.3'
+VERSION = '1.0.0'
 
-def rcver(sock, win, wint):
+def rcver(sock, win, wint, A_CHAT):
     while True:
         try:
             data = sock.recv(2048).decode('utf-8')
@@ -36,6 +36,8 @@ def rcver(sock, win, wint):
             break
         try:
             msg = json.loads(data)
+            F = open("DEBUG","w+");F.write(str(type(msg["chat"])));F.write(str(msg["chat"]));F.write(str(type(A_CHAT[0])));F.close()
+            if msg["chat"] != A_CHAT[0]: continue
         except Exception as e:
             sock.close()
             win.addstr('<SYSTEM>: Se ha producido un error al parsear un objeto JSON. Por favor reporta este error con los desarrolladores de HU.')
@@ -91,7 +93,7 @@ def clrbox(stdscr,y1,x1,y2,xm):
         for e in range(x1,xm+1):
             stdscr.addch(i,e,' ')
 
-def readbox(stdscr,Wb,Wr,x):
+def readbox(stdscr,Wb,Wr,x,A_CHAT):
     curses.curs_set(1)
     curses.echo()
     while True:
@@ -102,12 +104,39 @@ def readbox(stdscr,Wb,Wr,x):
         if msg == None: return 0
         if not msg: continue
         #TODO! BROKEN PIPE ERROR HANDLE ! TODO#
-        clt.sendall(('{"operation": "2", "msg": "%s"}' % scaper(msg,'"')).encode('utf-8'))
+        clt.sendall(('{"operation": "2", "msg": "%s", "chat": %s, "reply": 0, "type": 0}' % (scaper(msg,'"'), A_CHAT[0])).encode('utf-8'))
         Wb.touchwin()
         stdscr.noutrefresh()
         Wr.noutrefresh()
         Wb.noutrefresh()
         curses.doupdate()
+
+def chatselect(chat, A_CHAT, Wr, Wb, Wb_x):
+    s = A_CHAT.copy()
+    A_CHAT[0] = chat
+    Wr.erase()
+    Wr.noutrefresh()
+    for i in range(Wb_x):
+        Wb.addch(0, i, curses.ACS_HLINE)
+    Wb.noutrefresh()
+    curses.doupdate()
+    clt.sendall(('{"operation": "3", "get": "chat", "msg": 50, "id": %s}' % chat).encode('utf-8'))
+    BUFF_SIZE = int(clt.recv(8).decode())
+    clt.send("1".encode())
+    data = b''
+    while True:
+        data += clt.recv(BUFF_SIZE)
+        if len(data) != BUFF_SIZE: continue
+        else: break
+    msgs = json.loads(data.decode('utf-8'))
+    msgs.reverse()
+    for i in msgs:
+        Wr.addstr(f'<{i[6]}>: {i[3]}\n')
+    Wr.noutrefresh()
+    curses.doupdate()
+
+def mklam(*args):
+    return lambda: args[0](*args[1:])
 
 #!temporal
 def ixil():
@@ -117,7 +146,15 @@ def ixil():
 def _pass(): return 0
 #
 
-def design_1(stdscr,y,x,cx,chat):
+def design_1(stdscr,y,x,cx):
+    A_CHAT = [1]
+
+    ######################################
+    # Obtención de los datos del usuario #
+    ######################################
+    USER = clt.recv(32).decode('utf-8')
+    stdscr.addstr(2,1,f"Username: {USER}")
+
     ###########################
     # Dibujado de rectángulos #
     ###########################
@@ -165,10 +202,29 @@ def design_1(stdscr,y,x,cx,chat):
     Wb.noutrefresh()
     curses.doupdate()
 
+    #####################################
+    # Obtención y escritura de mensajes #
+    #####################################
+    # Wr
+    clt.sendall('{"operation": "3", "get": "chat", "msg": 50, "id": 1}'.encode('utf-8'))
+    BUFF_SIZE = int(clt.recv(8).decode())
+    clt.send("1".encode())
+    data = b''
+    while True:
+        data += clt.recv(BUFF_SIZE)
+        if len(data) != BUFF_SIZE: continue
+        else: break
+    msgs = json.loads(data.decode('utf-8'))
+    msgs.reverse()
+    for i in msgs:
+        Wr.addstr(f'<{i[6]}>: {i[3]}\n')
+    Wr.noutrefresh()
+    curses.doupdate()
+
     #####################
     # Inicio de threads #
     #####################
-    rc = Thread(target=rcver, args=(clt,Wr, Wb))
+    rc = Thread(target=rcver, args=(cltch,Wr, Wb, A_CHAT))
     rc.start()
 
     #########
@@ -186,9 +242,12 @@ def design_1(stdscr,y,x,cx,chat):
         "Chatrooms": _pass,
         "Cerrar Sesión": ixil
     }
+    wul_dict = {}
+    for i in chats:
+        wul_dict[i[3]] = mklam(chatselect, i[0], A_CHAT, Wr, Wb, caps[3][1])
     func = (
-            (_pass,_pass),
-            (lambda: menu(Wdl,0,2,wdl_dict), lambda: readbox(stdscr, Wb, Wr,x))
+            (lambda: menu(Wul,0,2,wul_dict,aster=1),_pass),
+            (lambda: menu(Wdl,0,2,wdl_dict,aster=1), lambda: readbox(stdscr, Wb, Wr,x,A_CHAT))
         )
     curses.curs_set(0)
     curses.noecho()
@@ -233,7 +292,7 @@ def login(stdscr,creds,cx):
     if rsp == "0":
         y, x = stdscr.getmaxyx()
         stdscr.move(3,0);stdscr.clrtobot()
-        design_1(stdscr,y,x,cx, 'm1')
+        design_1(stdscr,y,x,cx)
     else:
         stdscr.addstr(6,(cx-(16//2))-13,"Usuario o contraseña incorrectos",curses.color_pair(10))
     return 1
@@ -350,6 +409,8 @@ def main(stdscr):
 
 clt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 clt.connect(("181.164.171.34", 5555))
+cltch = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+cltch.connect(("181.164.171.34", 5556))
 clt.sendall("24eds124".encode())
 IN_DEVELOPMENT = int(clt.recv(20).decode())
 
