@@ -4,7 +4,7 @@
 ##############################
 import curses
 
-def scroll(stdscr, y: int, x: int, d: dict, limit: int) -> None:
+def scroll(stdscr, y: int, x: int, d: dict, limit: int, aster=0) -> None:
     curses.use_default_colors()
     curses.init_pair(15,0,15)
     it = list(d.keys())
@@ -56,11 +56,12 @@ def scroll(stdscr, y: int, x: int, d: dict, limit: int) -> None:
                 return res
             return
 
-def menu(stdscr, y: int, x: int, d: dict) -> None:
+def menu(stdscr, y: int, x: int, d: dict, aster=0) -> None:
     curses.use_default_colors()
     curses.init_pair(15,0,15)
     it = list(d.keys())
     p = 0
+    my=stdscr.getmaxyx()[0]
     for i in d:
         stdscr.addstr(y+p, x, i)
         p += 1
@@ -88,6 +89,14 @@ def menu(stdscr, y: int, x: int, d: dict) -> None:
             stdscr.noutrefresh()
             curses.doupdate()
             res = d[it[p]]()
+            if aster:
+                for i in range(my):
+                    stdscr.addch(i, 0, ' ')
+                    stdscr.noutrefresh()
+                stdscr.addch(y+p,0,'*')
+                stdscr.noutrefresh()
+                curses.doupdate()
+            prev_p = p
             if res:
                 return res
             return
