@@ -11,7 +11,7 @@ from modules.scaper import scaper
 from shlex import split
 from threading import Thread
 from os import _exit
-VERSION = '1.0.3'
+VERSION = '1.0.4'
 
 def rcver(sock, win, wint, A_CHAT):
     while True:
@@ -288,7 +288,7 @@ def login(stdscr,creds,cx):
     if (not creds["username"]) or (not creds["password"]):
         stdscr.addstr(6,(cx-(16//2))-13,"Todos los campos son obligatorios!",curses.color_pair(10))
         return 1
-    clt.sendall(('{"operation": "1", "username":"%s", "password":"%s"}' % (scaper(creds['username'],'"'), scaper(creds['password'], '"'))).encode('utf-8'))
+    clt.sendall(('{"operation": "1", "username":"%s", "password":"%s"}' % (creds['username'], creds['password'])).encode('utf-8'))
     rsp = clt.recv(1024).decode('utf-8')
     if rsp == "0":
         y, x = stdscr.getmaxyx()
@@ -408,9 +408,10 @@ def main(stdscr):
 
 
 clt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-clt.connect(("181.164.171.34", 5555))
+svad = open("modules/address").read().strip()
+clt.connect((svad, 5555))
 cltch = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-cltch.connect(("181.164.171.34", 5556))
+cltch.connect((svad, 5556))
 clt.sendall("24eds124".encode())
 IN_DEVELOPMENT = int(clt.recv(20).decode())
 
