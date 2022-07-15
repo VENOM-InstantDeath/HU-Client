@@ -7,7 +7,7 @@ from modules.ncRead import ampsread
 from modules.boxsel import boxsel
 from modules.menu import menu
 from curses.textpad import rectangle
-from modules.scaper import scaper
+from modules.scaper import escaper
 from shlex import split
 from threading import Thread
 from os import _exit
@@ -54,7 +54,7 @@ def rcver(sock, win, wint, A_CHAT):
             curses.endwin()
             _exit(0)
         try:
-            win.addstr(f'<{msg["name"].encode("unicode_escape").decode("utf-8")}>: {msg["msg"].encode("unicode_escape").decode("utf-8")}\n')
+            win.addstr(f'<{msg["name"]}>: {msg["msg"].encode("unicode_escape").decode()}\n')
         except KeyError:
             win.addstr('<SYSTEM>: KeyError on rcver thread.\n')
             win.addstr(f'<SYSTEM>: {msg}\n')
@@ -103,7 +103,7 @@ def readbox(stdscr,Wb,Wr,x,A_CHAT):
         if msg == None: return 0
         if not msg: continue
         #TODO! BROKEN PIPE ERROR HANDLE ! TODO#
-        clt.sendall(('{"operation": "2", "msg": "%s", "chat": %s, "reply": 0, "type": 0}' % (scaper(msg,'"'), A_CHAT[0])).encode('utf-8'))
+        clt.sendall(('{"operation": "2", "msg": "%s", "chat": %s, "reply": 0, "type": 0}' % (escaper(msg), A_CHAT[0])).encode('utf-8'))
         Wb.touchwin()
         stdscr.noutrefresh()
         Wr.noutrefresh()
