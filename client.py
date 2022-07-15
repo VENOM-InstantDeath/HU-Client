@@ -11,7 +11,7 @@ from modules.scaper import escaper
 from shlex import split
 from threading import Thread
 from os import _exit
-VERSION = '1.0.7'
+VERSION = '1.0.8'
 
 def rcver(sock, win, wint, A_CHAT):
     while True:
@@ -115,9 +115,6 @@ def chatselect(chat, A_CHAT, Wr, Wb, Wb_x):
     A_CHAT[0] = chat
     Wr.erase()
     Wr.noutrefresh()
-    for i in range(Wb_x):
-        Wb.addch(0, i, curses.ACS_HLINE)
-    Wb.noutrefresh()
     curses.doupdate()
     clt.sendall(('{"operation": "3", "get": "chat", "msg": 50, "id": %s}' % chat).encode('utf-8'))
     BUFF_SIZE = int(clt.recv(8).decode())
@@ -132,6 +129,9 @@ def chatselect(chat, A_CHAT, Wr, Wb, Wb_x):
     for i in msgs:
         Wr.addstr(f'<{i[6]}>: {i[3]}\n')
     Wr.noutrefresh()
+    for i in range(Wb_x):
+        Wb.addch(0, i, curses.ACS_HLINE)
+    Wb.noutrefresh()
     curses.doupdate()
 
 def mklam(*args):
@@ -219,6 +219,9 @@ def design_1(stdscr,y,x,cx):
     for i in msgs:
         Wr.addstr(f'<{i[6]}>: {i[3]}\n')
     Wr.noutrefresh()
+    for i in range(Wb_x):
+        Wb.addch(0, i, curses.ACS_HLINE)
+    Wb.noutrefresh()
     curses.doupdate()
     #####################
     # Inicio de threads #
