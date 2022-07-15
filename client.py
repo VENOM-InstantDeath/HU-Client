@@ -54,7 +54,7 @@ def rcver(sock, win, wint, A_CHAT):
             curses.endwin()
             _exit(0)
         try:
-            win.addstr(f'<{msg["name"]}>: {msg["msg"].encode("unicode_escape").decode()}\n')
+            win.addstr(f'<{msg["name"]}>: {msg["msg"]}\n')
         except KeyError:
             win.addstr('<SYSTEM>: KeyError on rcver thread.\n')
             win.addstr(f'<SYSTEM>: {msg}\n')
