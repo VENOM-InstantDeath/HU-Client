@@ -11,7 +11,7 @@ from modules.scaper import escaper
 from shlex import split
 from threading import Thread
 from os import _exit
-VERSION = '1.0.4'
+VERSION = '1.0.6'
 
 def rcver(sock, win, wint, A_CHAT):
     while True:
@@ -378,8 +378,9 @@ def main(stdscr):
     cx = x//2
     fill_rectangle(stdscr,0,0,2,x-1)
     stdscr.addstr(1,cx-(15//2),"Hacking-Utils.c (Demo version)", curses.color_pair(17))
-    srv_ver = get("https://raw.githubusercontent.com/VENOM-InstantDeath/HU-Client/main/version")
-    if srv_ver.content.decode().strip() != VERSION:
+    clt.sendall('{"operation": 3, "get": "version"}')
+    L_VERSION = clt.recv(16).decode()
+    if L_VERSION != VERSION:
         win = curses.newwin(4,50, (y//2)-4, cx-25)
         win.addstr(0,0,"El cliente está desactualizado, actualízalo para continuar.")
         win.addstr(3,25-(len("[ok]")//2),"[OK]",curses.color_pair(1))
