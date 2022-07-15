@@ -378,7 +378,7 @@ def main(stdscr):
     cx = x//2
     fill_rectangle(stdscr,0,0,2,x-1)
     stdscr.addstr(1,cx-(15//2),"Hacking-Utils.c (Demo version)", curses.color_pair(17))
-    clt.sendall('{"operation": 3, "get": "version"}'.encode('utf-8'))
+    clt.sendall('{"operation": "3", "get": "version"}'.encode('utf-8'))
     L_VERSION = clt.recv(16).decode()
     if L_VERSION != VERSION:
         win = curses.newwin(4,50, (y//2)-4, cx-25)
