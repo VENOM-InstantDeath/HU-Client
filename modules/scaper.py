@@ -1,9 +1,13 @@
 def scaper(s, c): # string scaper(string s, char c)
-    ac = 0
-    s = s.encode('unicode_escape').decode('utf-8')
-    return s.replace(c, ('\\%s'%c).encode("unicode_escape").decode("utf-8"))
+    return repr(s.replace(c, ('\\%s'%c)))[1:-1]
+
+def escaper(s):
+    s = repr(s)[1:-1]
+    return s.replace('"', '\\"')
 
 if __name__=='__main__':
     s = input("string: ")
     import json
-    print(json.loads('{"txt": "%s"}' % scaper(s,'"')))
+    s = scaper(s,'"')
+    print(s)
+    print(json.loads('{"txt": "%s"}' % s))
