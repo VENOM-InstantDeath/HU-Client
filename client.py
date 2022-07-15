@@ -219,7 +219,7 @@ def design_1(stdscr,y,x,cx):
     for i in msgs:
         Wr.addstr(f'<{i[6]}>: {i[3]}\n')
     Wr.noutrefresh()
-    for i in range(Wb_x):
+    for i in range(caps[3][1]):
         Wb.addch(0, i, curses.ACS_HLINE)
     Wb.noutrefresh()
     curses.doupdate()
