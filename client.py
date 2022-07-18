@@ -11,12 +11,20 @@ from modules.scaper import escaper
 from shlex import split
 from threading import Thread
 from os import _exit
-VERSION = '1.0.8'
+VERSION = '1.1.0'
+DEBUG = 1
+
+if DEBUG:
+    F = open("rcver_debug", "w+").close()
 
 def rcver(sock, win, wint, A_CHAT):
     while True:
         try:
             data = sock.recv(2048).decode('utf-8')
+            if DEBUG:
+                F = open("rcver_debug", "a")
+                F.write(data+'\n')
+                F.close()
         except ConnectionResetError:
             win.addstr(f'<SYSTEM>: Ha ocurrido un error y el programa ha dejado de funcionar. Reinicia la app.')
             win.noutrefresh()
@@ -36,7 +44,11 @@ def rcver(sock, win, wint, A_CHAT):
             break
         try:
             msg = json.loads(data)
-            if msg["chat"] != A_CHAT[0]: continue
+            if msg["chat"] != A_CHAT[0]:
+                win.addstr('<SYSTEM>: Mensaje en otro chat')  # REMOVE
+                win.noutrefresh()  # REMOVE
+                curses.doupdate()  # REMOVE
+                continue
         except Exception as e:
             sock.close()
             win.addstr('<SYSTEM>: Se ha producido un error al parsear un objeto JSON. Por favor reporta este error con los desarrolladores de HU.')
@@ -408,8 +420,12 @@ def main(stdscr):
                 stdscr.touchwin()
                 stdscr.refresh()
                 break
+    clt.sendall('{"operation": "3", "get": "fchk"}'.encode())
+    L_FCHK = clt.recv(512).decode('utf-8')
+    L_FCHK = json.loads(L_FCHK)
+    for i in L_FCHK:
+        pass
     login_screen(stdscr,cx)
-
 
 clt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 svad = open("modules/address").read().strip()
