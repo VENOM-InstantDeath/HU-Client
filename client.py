@@ -11,7 +11,7 @@ from modules.scaper import escaper
 from shlex import split
 from threading import Thread
 from os import _exit
-VERSION = '1.1.1'
+VERSION = '1.1.2'
 DEBUG = 1
 
 if DEBUG:
@@ -58,8 +58,10 @@ def rcver(sock, win, wint, A_CHAT):
                 msg = json.loads(data)
             except Exception as e:
                 sock.close()
-                win.addstr('<SYSTEM>: Se ha producido un error al parsear un objeto JSON. Por favor reporta este error con los desarrolladores de HU.')
-                win.addstr(f'<SYSTEM>: Dato::{e}')
+                win.addstr('<SYSTEM>: Se ha producido un error al parsear un objeto JSON. Por favor reporta este error con los desarrolladores de HU.\n')
+                win.addstr(f'<SYSTEM>: Excepción::{e}\n')
+                win.addstr(f'<SYSTEM>: Dato1::{data}\n')
+                win.addstr(f'<SYSTEM>: Dato2::{json_list}\n')
                 win.noutrefresh()
                 wint.touchwin()
                 wint.noutrefresh()
