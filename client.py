@@ -11,20 +11,30 @@ from modules.scaper import escaper
 from shlex import split
 from threading import Thread
 from os import _exit
-VERSION = '1.1.0'
+VERSION = '1.1.1'
 DEBUG = 1
 
 if DEBUG:
     F = open("rcver_debug", "w+").close()
 
+def msg_split(s):
+    c = []
+    sc = [0,0]
+    sl = []
+    for i in range(len(s)):
+        if s[i] == '{': sc[0] = i
+        if s[i] == '}':
+            sc[1] = i
+            c.append(sc)
+            sc = [0,0]
+    for i in c:
+        sl.append(s[i[0]:i[1]+1])
+    return sl
+
 def rcver(sock, win, wint, A_CHAT):
     while True:
         try:
             data = sock.recv(2048).decode('utf-8')
-            if DEBUG:
-                F = open("rcver_debug", "a")
-                F.write(data+'\n')
-                F.close()
         except ConnectionResetError:
             win.addstr(f'<SYSTEM>: Ha ocurrido un error y el programa ha dejado de funcionar. Reinicia la app.')
             win.noutrefresh()
@@ -42,43 +52,40 @@ def rcver(sock, win, wint, A_CHAT):
             _exit(0)
         if not data:
             break
-        try:
-            msg = json.loads(data)
-            if msg["chat"] != A_CHAT[0]:
-                win.addstr('<SYSTEM>: Mensaje en otro chat')  # REMOVE
-                win.noutrefresh()  # REMOVE
-                curses.doupdate()  # REMOVE
-                continue
-        except Exception as e:
-            sock.close()
-            win.addstr('<SYSTEM>: Se ha producido un error al parsear un objeto JSON. Por favor reporta este error con los desarrolladores de HU.')
-            win.addstr(f'<SYSTEM>: Dato::{e}')
-            win.noutrefresh()
-            wint.touchwin()
-            wint.noutrefresh()
-            curses.doupdate()
-            win.addstr('<SYSTEM>: Saliendo...')
-            win.noutrefresh()
-            wint.touchwin()
-            wint.noutrefresh()
-            curses.doupdate()
-            curses.napms(2000)
-            curses.endwin()
-            _exit(0)
-        try:
-            win.addstr(f'<{msg["name"]}>: {msg["msg"]}\n')
-        except KeyError:
-            win.addstr('<SYSTEM>: KeyError on rcver thread.\n')
-            win.addstr(f'<SYSTEM>: {msg}\n')
-            win.addstr('<SYSTEM> Saliendo...')
-            win.noutrefresh()
-            wint.touchwin()
-            wint.noutrefresh()
-            curses.doupdate()
-            curses.napms(2000)
-            sock.close()
-            curses.endwin()
-            _exit(0)
+        json_list = msg_split(data)
+        for i in json_list:
+            try:
+                msg = json.loads(data)
+            except Exception as e:
+                sock.close()
+                win.addstr('<SYSTEM>: Se ha producido un error al parsear un objeto JSON. Por favor reporta este error con los desarrolladores de HU.')
+                win.addstr(f'<SYSTEM>: Dato::{e}')
+                win.noutrefresh()
+                wint.touchwin()
+                wint.noutrefresh()
+                curses.doupdate()
+                win.addstr('<SYSTEM>: Saliendo...')
+                win.noutrefresh()
+                wint.touchwin()
+                wint.noutrefresh()
+                curses.doupdate()
+                curses.napms(2000)
+                curses.endwin()
+                _exit(0)
+            try:
+                win.addstr(f'<{msg["name"]}>: {msg["msg"]}\n')
+            except KeyError:
+                win.addstr('<SYSTEM>: KeyError on rcver thread.\n')
+                win.addstr(f'<SYSTEM>: {msg}\n')
+                win.addstr('<SYSTEM> Saliendo...')
+                win.noutrefresh()
+                wint.touchwin()
+                wint.noutrefresh()
+                curses.doupdate()
+                curses.napms(2000)
+                sock.close()
+                curses.endwin()
+                _exit(0)
         win.noutrefresh()
         wint.touchwin()
         wint.noutrefresh()
