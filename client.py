@@ -55,7 +55,7 @@ def rcver(sock, win, wint, A_CHAT):
         json_list = msg_split(data)
         for i in json_list:
             try:
-                msg = json.loads(data)
+                msg = json.loads(data, strict=False)
             except Exception as e:
                 sock.close()
                 win.addstr('<SYSTEM>: Se ha producido un error al parsear un objeto JSON. Por favor reporta este error con los desarrolladores de HU.\n')
@@ -71,7 +71,7 @@ def rcver(sock, win, wint, A_CHAT):
                 wint.touchwin()
                 wint.noutrefresh()
                 curses.doupdate()
-                curses.napms(2000)
+                curses.napms(5000)
                 curses.endwin()
                 _exit(0)
             try:
@@ -84,7 +84,7 @@ def rcver(sock, win, wint, A_CHAT):
                 wint.touchwin()
                 wint.noutrefresh()
                 curses.doupdate()
-                curses.napms(2000)
+                curses.napms(5000)
                 sock.close()
                 curses.endwin()
                 _exit(0)
