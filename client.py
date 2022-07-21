@@ -2,20 +2,19 @@ import curses
 import socket
 import json
 from requests import get
+from hashlib import md5
 from modules import ncRead
 from modules.ncRead import ampsread
 from modules.boxsel import boxsel
 from modules.menu import menu
+from os import path
 from curses.textpad import rectangle
 from modules.scaper import escaper
 from shlex import split
 from threading import Thread
 from os import _exit
-VERSION = '1.1.2'
+VERSION = '1.2.0'
 DEBUG = 1
-
-if DEBUG:
-    F = open("rcver_debug", "w+").close()
 
 def msg_split(s):
     c = []
@@ -30,6 +29,9 @@ def msg_split(s):
     for i in c:
         sl.append(s[i[0]:i[1]+1])
     return sl
+
+def msg_lines(nick, msg, x):
+    pass
 
 def rcver(sock, win, wint, A_CHAT):
     while True:
@@ -57,23 +59,6 @@ def rcver(sock, win, wint, A_CHAT):
             try:
                 msg = json.loads(data, strict=False)
             except Exception as e:
-                #sock.close()
-                #win.addstr('<SYSTEM>: Se ha producido un error al parsear un objeto JSON. Por favor reporta este error con los desarrolladores de HU.\n')
-                #win.addstr(f'<SYSTEM>: Excepción::{e}\n')
-                #win.addstr(f'<SYSTEM>: Dato1::{data}\n')
-                #win.addstr(f'<SYSTEM>: Dato2::{json_list}\n')
-                #win.noutrefresh()
-                #wint.touchwin()
-                #wint.noutrefresh()
-                #curses.doupdate()
-                #win.addstr('<SYSTEM>: Saliendo...')
-                #win.noutrefresh()
-                #wint.touchwin()
-                #wint.noutrefresh()
-                #curses.doupdate()
-                #curses.napms(5000)
-                #curses.endwin()
-                #_exit(0)
                 continue
             try:
                 win.addstr(f'<{msg["name"]}>: {msg["msg"]}\n')
@@ -433,8 +418,29 @@ def main(stdscr):
     clt.sendall('{"operation": "3", "get": "fchk"}'.encode())
     L_FCHK = clt.recv(512).decode('utf-8')
     L_FCHK = json.loads(L_FCHK)
+    FCHK_ERR = 0
     for i in L_FCHK:
-        pass
+        if not path.exists(i):
+            FCHK_ERR = 1
+            break
+        F = open(i, 'rb')
+        if not md5(F.read()).hexdigest() in L_FCHK[i]:
+            FCHK_ERR = 1
+            break
+        F.close()
+    if FCHK_ERR:
+        win = curses.newwin(4,50, (y//2)-4, cx-25)
+        win.addstr(0,0,"Ha ocurrido un error en el cliente y el mismo no puede iniciarse.")
+        win.addstr(3,25-(len("[salir]")//2),"[Salir]",curses.color_pair(1))
+        stdscr.refresh()
+        win.refresh()
+        while True:
+            k = win.getch()
+            if k == 10:
+                del win
+                stdscr.touchwin()
+                stdscr.refresh()
+                exit(1)
     login_screen(stdscr,cx)
 
 clt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
