@@ -13,8 +13,10 @@ from modules.scaper import escaper
 from shlex import split
 from threading import Thread
 from os import _exit
-VERSION = '1.2.0'
+VERSION = '1.3.0'
 DEBUG = 1
+
+F = open("scroll.log", 'w+')
 
 def msg_split(s):
     c = []
@@ -31,9 +33,15 @@ def msg_split(s):
     return sl
 
 def msg_lines(nick, msg, x):
-    pass
+    # ( <venom>: lorem ipsum dolor ) -> size // x
+    msg = f'<{nick}>: {msg}'
+    lines = (len(f'<{nick}>: {msg}')//x)+1
+    lines_list = []
+    for i in range(lines):
+        lines_list.append(msg[x*i:x*(i+1)])
+    return lines_list
 
-def rcver(sock, win, wint, A_CHAT):
+def rcver(sock, win, wint, A_CHAT, msglines, x, msgcur, WRITE, unprinted):
     while True:
         try:
             data = sock.recv(2048).decode('utf-8')
@@ -58,9 +66,16 @@ def rcver(sock, win, wint, A_CHAT):
         for i in json_list:
             try:
                 msg = json.loads(data, strict=False)
+                if msg["chat"] != A_CHAT[0]: continue
             except Exception as e:
                 continue
             try:
+                lines = msg_lines(msg["name"], msg["msg"], x)
+                msglines.extend(lines)
+                msgcur[0] += len(lines); msgcur[1] += len(lines)
+                if not WRITE[0]:
+                    unprinted.append(f'<{msg["name"]}>: {msg["msg"]}\n')
+                    continue
                 win.addstr(f'<{msg["name"]}>: {msg["msg"]}\n')
             except KeyError:
                 win.addstr('<SYSTEM>: KeyError on rcver thread.\n')
@@ -99,6 +114,61 @@ def clrbox(stdscr,y1,x1,y2,xm):
         for e in range(x1,xm+1):
             stdscr.addch(i,e,' ')
 
+def msgscroll(Wr, Wr_y, Wb, Wb_x, msglines, msgcur, WRITE, unprinted):
+    WRITE[0] = 0
+    F = open("scroll.log", 'a')
+    F.write(f'msgcur: {msgcur}\n')
+    F.write(f'len_msglines: {len(msglines)}\n')
+    F.write(f'msglines: {msglines}\n')
+#    F.write(f'og:line_a: {msglines[msgcur[0]]}\n')
+#    F.write(f'og:line_b: {msglines[msgcur[1]]}\n')
+    curcpy = msgcur.copy()
+    while True:
+        k = Wr.getch()
+        if k == 27:
+            for i in unprinted: pass
+            unprinted.clear()
+            WRITE[0] = 1
+            F.close()
+            return 0
+        if k == curses.KEY_UP:
+            if not curcpy[0]:
+                F.write('KEY_UP continue\n')
+                continue
+            curcpy[0] -= 1; curcpy[1] -= 1
+            Wr.scroll(-1)
+            Wr.addstr(0,0,msglines[curcpy[0]])
+            Wr.noutrefresh()
+            for i in range(Wb_x):
+                Wb.addch(0, i, curses.ACS_HLINE)
+            Wb.noutrefresh()
+            Wr.noutrefresh()
+            curses.doupdate()
+        if k == curses.KEY_DOWN:
+            # quité el -1 del len(msglines)-1
+            # pasa que pensé que tengo que sumar al
+            # msgcur[1] la cantidad de líneas nuevas
+            # y no de mensajes, porque los mensajes
+            # pueden tener más de una línea.
+            # Y como le sumo al msgcur[1], lo mismo
+            # le tengo que sumar al msgcur[0].
+            #
+            # El índice empieza desde 0. len(msglines)
+            # tiene que tener su -1. No entiendo.
+            F.write(f'curcpy: {curcpy}')
+            if curcpy[1] == len(msglines)-1:
+                F.write('KEY_DOWN continue\n')
+                continue
+            curcpy[0] += 1; curcpy[1] += 1
+            Wr.scroll(1)
+            Wr.addstr(Wr_y-2,0,msglines[curcpy[1]])
+            Wr.noutrefresh()
+            for i in range(Wb_x):
+                Wb.addch(0, i, curses.ACS_HLINE)
+            Wb.noutrefresh()
+            Wr.noutrefresh()
+            curses.doupdate()
+
 def readbox(stdscr,Wb,Wr,x,A_CHAT):
     curses.curs_set(1)
     curses.echo()
@@ -117,9 +187,10 @@ def readbox(stdscr,Wb,Wr,x,A_CHAT):
         Wb.noutrefresh()
         curses.doupdate()
 
-def chatselect(chat, A_CHAT, Wr, Wb, Wb_x):
-    s = A_CHAT.copy()
+def chatselect(chat, A_CHAT, Wr, Wb, Wb_x, msglines, Wr_x, Wr_y, msgcur):
     A_CHAT[0] = chat
+    msgcur.clear()
+    msgcur.extend((0,0))
     Wr.erase()
     Wr.noutrefresh()
     curses.doupdate()
@@ -133,8 +204,15 @@ def chatselect(chat, A_CHAT, Wr, Wb, Wb_x):
         else: break
     msgs = json.loads(data.decode('utf-8'))
     msgs.reverse()
+    msglines.clear()
     for i in msgs:
+        msglines.extend(msg_lines(i[6],i[3],Wr_x))
         Wr.addstr(f'<{i[6]}>: {i[3]}\n')
+    if Wr_y-2 > len(msglines):
+        msgcur[0] = 0
+    else:
+        msgcur[0] = len(msglines)-(Wr_y-2)
+    msgcur[1] = len(msglines)-1
     Wr.noutrefresh()
     for i in range(Wb_x):
         Wb.addch(0, i, curses.ACS_HLINE)
@@ -154,6 +232,7 @@ def _pass(): return 0
 
 def design_1(stdscr,y,x,cx):
     A_CHAT = [1]
+    WRITE = [1]
     stdscr.move(3,0);stdscr.clrtobot()
     ######################################
     # Obtención de los datos del usuario #
@@ -212,6 +291,9 @@ def design_1(stdscr,y,x,cx):
     # Obtención y escritura de mensajes #
     #####################################
     # Wr
+    msglines = []
+    unprinted = []
+    msgcur = [0,0]
     clt.sendall('{"operation": "3", "get": "chat", "msg": 50, "id": 1}'.encode('utf-8'))
     BUFF_SIZE = int(clt.recv(8).decode())
     clt.send("1".encode())
@@ -223,7 +305,10 @@ def design_1(stdscr,y,x,cx):
     msgs = json.loads(data.decode('utf-8'))
     msgs.reverse()
     Wr.scrollok(1)
+    msgcur[0] = len(msgs)-(caps[2][0]-2)
+    msgcur[1] = len(msgs)
     for i in msgs:
+        msglines.extend(msg_lines(i[6], i[3], caps[2][1]))
         Wr.addstr(f'<{i[6]}>: {i[3]}\n')
     Wr.noutrefresh()
     for i in range(caps[3][1]):
@@ -233,13 +318,14 @@ def design_1(stdscr,y,x,cx):
     #####################
     # Inicio de threads #
     #####################
-    rc = Thread(target=rcver, args=(cltch,Wr, Wb, A_CHAT))
+    rc = Thread(target=rcver, args=(cltch,Wr, Wb, A_CHAT, msglines, caps[2][1], msgcur, WRITE, unprinted))
     rc.start()
 
     #########
     # Input #
     #########
     Wb.keypad(1)
+    Wr.keypad(1)
     Wul.keypad(1)
     Wdl.keypad(1)
     pos = (
@@ -252,9 +338,10 @@ def design_1(stdscr,y,x,cx):
     }
     wul_dict = {}
     for i in chats:
-        wul_dict[i[3]] = mklam(chatselect, i[0], A_CHAT, Wr, Wb, caps[3][1])
+        wul_dict[i[3]] = mklam(chatselect, i[0], A_CHAT, Wr, Wb, caps[3][1], msglines, caps[2][1], caps[2][0], msgcur)
+    # def msgscroll(Wr, Wr_y, Wb, Wb_x, msglines, msgcur):
     func = (
-            (lambda: menu(Wul,0,2,wul_dict,aster=1),_pass),
+            (lambda: menu(Wul,0,2,wul_dict,aster=1), lambda: msgscroll(Wr, caps[2][0], Wb, caps[3][1], msglines, msgcur, WRITE, unprinted)),
             (lambda: menu(Wdl,0,2,wdl_dict,aster=1), lambda: readbox(stdscr, Wb, Wr,x,A_CHAT))
         )
     curses.curs_set(0)
