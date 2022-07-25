@@ -13,10 +13,8 @@ from modules.scaper import escaper
 from shlex import split
 from threading import Thread
 from os import _exit
-VERSION = '1.3.0'
+VERSION = '1.3.3'
 DEBUG = 1
-
-F = open("scroll.log", 'w+')
 
 def msg_split(s):
     c = []
@@ -33,9 +31,8 @@ def msg_split(s):
     return sl
 
 def msg_lines(nick, msg, x):
-    # ( <venom>: lorem ipsum dolor ) -> size // x
-    msg = f'<{nick}>: {msg}'
-    lines = (len(f'<{nick}>: {msg}')//x)+1
+    msg = f'<{nick}>: {msg}\n'
+    lines = (len(f'<{nick}>: {msg}\n')//x)+1
     lines_list = []
     for i in range(lines):
         lines_list.append(msg[x*i:x*(i+1)])
@@ -74,7 +71,7 @@ def rcver(sock, win, wint, A_CHAT, msglines, x, msgcur, WRITE, unprinted):
                 msglines.extend(lines)
                 msgcur[0] += len(lines); msgcur[1] += len(lines)
                 if not WRITE[0]:
-                    unprinted.append(f'<{msg["name"]}>: {msg["msg"]}\n')
+                    unprinted.extend(lines)
                     continue
                 win.addstr(f'<{msg["name"]}>: {msg["msg"]}\n')
             except KeyError:
@@ -116,28 +113,34 @@ def clrbox(stdscr,y1,x1,y2,xm):
 
 def msgscroll(Wr, Wr_y, Wb, Wb_x, msglines, msgcur, WRITE, unprinted):
     WRITE[0] = 0
-    F = open("scroll.log", 'a')
-    F.write(f'msgcur: {msgcur}\n')
-    F.write(f'len_msglines: {len(msglines)}\n')
-    F.write(f'msglines: {msglines}\n')
-#    F.write(f'og:line_a: {msglines[msgcur[0]]}\n')
-#    F.write(f'og:line_b: {msglines[msgcur[1]]}\n')
+    msgcpy = msglines.copy()
     curcpy = msgcur.copy()
     while True:
         k = Wr.getch()
         if k == 27:
-            for i in unprinted: pass
+            Wr.erase()
+            a = msgcur[0]
+            if not a: a = 1
+            for i in msgcpy[a-1:msgcur[1]+1]:
+                Wr.addstr(i)
+                Wr.noutrefresh()
+            for i in unprinted:
+                Wr.addstr(i)
+                Wr.noutrefresh()
             unprinted.clear()
+            for i in range(Wb_x):
+                Wb.addch(0, i, curses.ACS_HLINE)
+            Wb.noutrefresh()
+            Wr.noutrefresh()
+            curses.doupdate()
             WRITE[0] = 1
-            F.close()
             return 0
         if k == curses.KEY_UP:
             if not curcpy[0]:
-                F.write('KEY_UP continue\n')
                 continue
             curcpy[0] -= 1; curcpy[1] -= 1
             Wr.scroll(-1)
-            Wr.addstr(0,0,msglines[curcpy[0]])
+            Wr.addstr(0,0,msgcpy[curcpy[0]])
             Wr.noutrefresh()
             for i in range(Wb_x):
                 Wb.addch(0, i, curses.ACS_HLINE)
@@ -145,23 +148,11 @@ def msgscroll(Wr, Wr_y, Wb, Wb_x, msglines, msgcur, WRITE, unprinted):
             Wr.noutrefresh()
             curses.doupdate()
         if k == curses.KEY_DOWN:
-            # quité el -1 del len(msglines)-1
-            # pasa que pensé que tengo que sumar al
-            # msgcur[1] la cantidad de líneas nuevas
-            # y no de mensajes, porque los mensajes
-            # pueden tener más de una línea.
-            # Y como le sumo al msgcur[1], lo mismo
-            # le tengo que sumar al msgcur[0].
-            #
-            # El índice empieza desde 0. len(msglines)
-            # tiene que tener su -1. No entiendo.
-            F.write(f'curcpy: {curcpy}')
-            if curcpy[1] == len(msglines)-1:
-                F.write('KEY_DOWN continue\n')
+            if curcpy[1] == len(msgcpy)-1:
                 continue
             curcpy[0] += 1; curcpy[1] += 1
             Wr.scroll(1)
-            Wr.addstr(Wr_y-2,0,msglines[curcpy[1]])
+            Wr.addstr(Wr_y-2,0,msgcpy[curcpy[1]])
             Wr.noutrefresh()
             for i in range(Wb_x):
                 Wb.addch(0, i, curses.ACS_HLINE)
@@ -272,7 +263,7 @@ def design_1(stdscr,y,x,cx):
     clt.sendall('{"operation": "3", "get": "chatls"}'.encode('utf-8'))
     chats = clt.recv(2048).decode('utf-8')
     chats = json.loads(chats)
-    opts = ["Chatrooms", "Cerrar Sesión"]
+    opts = ["Chatrooms", "Ajustes", "Cerrar Sesión"]
     for i in range(len(chats)):
         Wul.addstr(i,2,chats[i][3])
     Wul.addstr(0, 0, '*')
@@ -305,12 +296,15 @@ def design_1(stdscr,y,x,cx):
     msgs = json.loads(data.decode('utf-8'))
     msgs.reverse()
     Wr.scrollok(1)
-    msgcur[0] = len(msgs)-(caps[2][0]-2)
-    msgcur[1] = len(msgs)
     for i in msgs:
         msglines.extend(msg_lines(i[6], i[3], caps[2][1]))
         Wr.addstr(f'<{i[6]}>: {i[3]}\n')
     Wr.noutrefresh()
+    if caps[2][0]-2 > len(msglines):
+        msgcur[0] = 0
+    else:
+        msgcur[0] = len(msglines)-(caps[2][0]-2)
+    msgcur[1] = len(msglines)-1
     for i in range(caps[3][1]):
         Wb.addch(0, i, curses.ACS_HLINE)
     Wb.noutrefresh()
@@ -334,6 +328,7 @@ def design_1(stdscr,y,x,cx):
         )
     wdl_dict = {
         "Chatrooms": _pass,
+        "Ajustes": _pass,
         "Cerrar Sesión": ixil
     }
     wul_dict = {}
